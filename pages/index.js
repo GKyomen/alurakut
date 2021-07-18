@@ -35,11 +35,7 @@ function ProfileRelationsBox(props) {
 
 export default function Home() {
 	const githubUser = "GKyomen"
-	const [comunidades, setComunidades] = React.useState([{
-		id: "9247928382",
-		title: "Eu odeio acordar cedo",
-		image: "https://alurakut.vercel.app/capa-comunidade-01.jpg"
-	}])
+	const [comunidades, setComunidades] = React.useState([])
 	const amigos = [
 		"mateusnishimura",
 		"akamarc0s",
@@ -58,6 +54,29 @@ export default function Home() {
 		.then(function(completeResponse) {
 			setSeguidores(completeResponse)
 		})
+
+		fetch('https://graphql.datocms.com/', {
+			method: "POST",
+			headers: {
+				'Authorization': '7db4ea3f18336743159e46ed7620fa',
+        		'Content-Type': 'application/json',
+        		'Accept': 'application/json',
+			},
+			body: JSON.stringify({ "query": `query {
+				allCommunities {
+				  id 
+				  title
+				  imageUrl
+				  creatorSlug
+				}
+			  }` 
+			})
+		})
+		.then((response) => response.json())
+    	.then((completeResponse) => {
+			const comunidadesDoDato = completeResponse.data.allCommunities;
+			setComunidades(comunidadesDoDato)
+    	})
 	}, [])
 
 	return (
@@ -81,12 +100,24 @@ export default function Home() {
 						event.preventDefault()
 						const dadosForm = new FormData(event.target)
 						const novaComunidade = {
-							id: new Date().toISOString(),
 							title: dadosForm.get("title"),
-							image: dadosForm.get("image")
+							imageUrl: dadosForm.get("image"),
+							creatorSlug: githubUser
 						}
-						const comunidadesAtualizadas = [...comunidades, novaComunidade]
-						setComunidades(comunidadesAtualizadas)
+
+						fetch("/api/comunidades", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json"
+							},
+							body: JSON.stringify(novaComunidade)
+						})
+						.then(async (response) => {
+							const dados = await response.json()
+							const novaComunidade = dados.registroCriado
+							const comunidadesAtualizadas = [...comunidades, novaComunidade]
+							setComunidades(comunidadesAtualizadas)
+						})
 					}}>
 						<div>
 							<input 
@@ -119,8 +150,8 @@ export default function Home() {
 						{comunidades.map((itemAtual) => {
                 			return (
                   				<li key={itemAtual.id}>
-                    				<a href={`/users/${itemAtual.title}`}>
-                      					<img src={itemAtual.image} />
+                    				<a href={`/communities/${itemAtual.id}`}>
+                      					<img src={itemAtual.imageUrl} />
                       					<span>{itemAtual.title}</span>
                     				</a>
                   				</li>
