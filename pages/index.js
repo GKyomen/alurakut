@@ -20,6 +20,19 @@ function ProfileSidebar(props) {
 	)
 }
 
+function ProfileRelationsBox(props) {
+	return (
+		<ProfileRelationsBoxWrapper>
+			<h2 className="smallTitle">
+				{props.title} ({props.items.length})
+			</h2>
+			<ul>
+				{}
+			</ul>
+    	</ProfileRelationsBoxWrapper>
+	)
+}
+
 export default function Home() {
 	const githubUser = "GKyomen"
 	const [comunidades, setComunidades] = React.useState([{
@@ -35,6 +48,17 @@ export default function Home() {
 		"MathVolps",
 		"GuiMilani"
 	]
+	const [seguidores, setSeguidores] = React.useState([])
+
+	React.useEffect(function() {
+		fetch('https://api.github.com/users/GKyomen/followers')
+		.then(function(serverResponse) {
+			return serverResponse.json()
+		})
+		.then(function(completeResponse) {
+			setSeguidores(completeResponse)
+		})
+	}, [])
 
 	return (
 		<>
@@ -86,6 +110,7 @@ export default function Home() {
 				</Box>
 			</div>
 			<div className="profileRelationsArea" style={{gridArea: "profileRelationsArea"}}>
+				<ProfileRelationsBox title="Seguidores" items={seguidores} />
 				<ProfileRelationsBoxWrapper>
 					<h2 className="smallTitle">
 						Comunidades ({comunidades.length})
